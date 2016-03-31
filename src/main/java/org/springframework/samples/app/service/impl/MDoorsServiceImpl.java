@@ -26,23 +26,20 @@ public class MDoorsServiceImpl implements IMDoorsService{
 	private static String ADD_BOOK = "insert into book values(100023,'test')";
 	
 	@Override
-//	@Transactional(readOnly=false,propagation = Propagation.NEVER)
+	@Transactional(readOnly=false,propagation = Propagation.NEVER)
 	public MDoors getMDoorByPrimaryKey(String id) {
 		return mDoorsMapper.getByPrimaryKey(id);
 	}
-	
 
-//	@Transactional(readOnly=false,propagation = Propagation.REQUIRES_NEW)
-	public void insertBook(){
+	@Transactional(readOnly=false,propagation = Propagation.REQUIRED)
+	public final void  insertBook(){
 		System.out.println("book added");
 		jdbcTemplate.execute(ADD_BOOK);
 //		throw new RuntimeException("ts");
-		
-		
 	}
 
 	@Override
-	
+	@Transactional(readOnly=false,propagation = Propagation.REQUIRED)
 	public void update(MDoors mDoor) {
 		 mDoorsMapper.update(mDoor);
 	}
@@ -50,9 +47,7 @@ public class MDoorsServiceImpl implements IMDoorsService{
 	@Override
 	@Transactional(readOnly=false,propagation = Propagation.REQUIRED)
 	public void delete(String id)  {
-		
-		
-		
+		mDoorsMapper.delete(id);
 	}
 	
 	@Transactional(readOnly=false,propagation=Propagation.NEVER)

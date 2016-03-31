@@ -9,6 +9,8 @@ import org.springframework.samples.app.service.IMDoorsService;
 import org.springframework.samples.app.service.IUserService;
 import org.springframework.samples.app.vo.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service("userService")
 public class UserServiceImpl implements IUserService {
@@ -21,30 +23,15 @@ public class UserServiceImpl implements IUserService {
 	private JdbcTemplate jdbcTemplate;
 	@Resource
 	private SqlSessionFactory sqlSessionFactory;
-	
+	@Transactional(readOnly=false,propagation = Propagation.NEVER)
 	public User getUserById(int userId) {
-		// TODO Auto-generated method stub
 		return this.userDao.selectByPrimaryKey(userId);
 	}
 	
-//	@Transactional(readOnly=false,propagation = Propagation.REQUIRED)
+	@Transactional(readOnly=false,propagation = Propagation.REQUIRED)
 	public void insertUser(){
-//		try {
-//			userMapper.insert(user);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-		
-			jdbcTemplate.execute(ADD_USER);
-			System.out.println("user added");
-			mDoorsService.insertBook();
-//			insertBook();
-		
-		
+		jdbcTemplate.execute(ADD_USER);
+		System.out.println("user added");
+		mDoorsService.insertBook();
 	}
-	
-	
-
-	
-
 }

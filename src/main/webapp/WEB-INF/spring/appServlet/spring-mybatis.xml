@@ -56,20 +56,23 @@
 	
 	<!-- (事务管理)transaction manager, use JtaTransactionManager for global tx 
 	
-	<tx:annotation-driven transaction-manager="transactionManager"/>	
-	-->
-	<tx:advice id="txAdvice" transaction-manager="transactionManager">
-		<tx:attributes>
-			<tx:method name="insertUser" propagation="REQUIRED" />
-			<tx:method name="insertBook" propagation="SUPPORTS"/>
-		</tx:attributes>
-	</tx:advice>
+	
 	<aop:config>
 		<aop:advisor advice-ref="txAdvice" pointcut="execution(* org.springframework.samples.app.service.impl.*.*(..))"/>
 		<aop:aspect ref="aoplog">
 			<aop:around method="execute" pointcut="execution(* org.springframework.samples.app.service.impl.*.*(..))"/>
 		</aop:aspect>
-	</aop:config>	
+	</aop:config>
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="insertUser" propagation="REQUIRED" />
+			<tx:method name="insertBook" propagation="SUPPORTS"/>
+		</tx:attributes>
+	</tx:advice>	
+	-->
+	
+	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>	
+	<tx:annotation-driven transaction-manager="transactionManager"/>	
 	<bean id = "aoplog" class="org.springframework.samples.app.aop.AopLog">
 	</bean>
 	<bean id="transactionManager"
