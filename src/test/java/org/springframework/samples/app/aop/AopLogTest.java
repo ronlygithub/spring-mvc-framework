@@ -7,6 +7,7 @@ import javax.annotation.Resource;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.samples.app.service.IMDoorsService;
 import org.springframework.samples.app.service.IUserService;
 import org.springframework.samples.mvc.AbstractContextControllerTests;
@@ -18,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class AopLogTest extends AbstractContextControllerTests{
 
-	@Resource
+	@Autowired
 	IMDoorsService mDoorsService;
 	@Resource
 	IUserService userService;

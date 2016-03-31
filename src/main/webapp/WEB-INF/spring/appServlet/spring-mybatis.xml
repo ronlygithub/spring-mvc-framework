@@ -71,7 +71,7 @@
 	</tx:advice>	
 	-->
 	
-	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>	
+	<aop:aspectj-autoproxy proxy-target-class="false"></aop:aspectj-autoproxy>	
 	<tx:annotation-driven transaction-manager="transactionManager"/>	
 	<bean id = "aoplog" class="org.springframework.samples.app.aop.AopLog">
 	</bean>
