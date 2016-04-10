@@ -13,21 +13,25 @@ import org.springframework.test.context.transaction.BeforeTransaction;
 @Aspect
 public class AopLog {
 
+	private Long start ,end;
 	@Pointcut("execution(* org.springframework.samples.app.service.impl.*.*(..))")
 	public final void execute() throws Throwable{
 	}
 	
 	@Before(value = "execute()")
 	public void before(){
+		start = System.currentTimeMillis();
 		System.out.println("before execute");
 	}
 	
 	@After(value = "execute()")
 	public void after(){
-		System.out.println("after execute");
+		end =System.currentTimeMillis();
+		System.out.println("after execute ");
+		System.out.println("Time expensed :" + +(end - start)+" ms");
 	}
 	
-	@Around(value = "execute()")
+//	@Around(value = "execute()")
 	public void around(ProceedingJoinPoint point) throws Throwable{
 		System.out.println("begin around");
 		point.proceed();
