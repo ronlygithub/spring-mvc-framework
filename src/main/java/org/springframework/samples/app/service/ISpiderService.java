@@ -19,4 +19,6 @@ public interface ISpiderService {
 	public void spider(int begin, int end);
 	
 	public void writer(String resultSet ,String path);
+	
+	public String reader(String path);
 }
