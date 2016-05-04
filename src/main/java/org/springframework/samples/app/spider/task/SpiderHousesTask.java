@@ -30,7 +30,7 @@ public class SpiderHousesTask extends AbstractSpiderTask{
 					}
 					String href = a.get(0).attr("href");					
 					String houseId = href.substring(href.indexOf("=")+1, href.indexOf("&"));
-					resultSet.append(projectId).append(",").append(houseId).append(",");
+					resultSet.append(houseId).append(",").append(projectId).append(",");
 				}
 				String text = td.text();
 				resultSet.append(text).append(",");

@@ -1,20 +1,24 @@
 package org.springframework.samples.app.service.impl;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import javax.annotation.Resource;
 
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
@@ -25,12 +29,30 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.samples.app.dao.DatasourceMapper;
+import org.springframework.samples.app.dao.ProjectMapper;
 import org.springframework.samples.app.service.ISpiderService;
 import org.springframework.samples.app.spider.task.SpiderHousesTask;
+import org.springframework.samples.app.vo.Datasource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 @Service("spiderService")
 public class SpiderServiceImpl implements ISpiderService{
+	@Resource
+	private DatasourceMapper datasourceMapper;
+	@Resource
+	private ProjectMapper projectMapper;
+	private String currentDate;
+	private String projectLisfFile = "e:\\syfc\\projectList.txt.";
+
+	public String getCurrentDate() {
+		if (currentDate == null) {
+			Date d = new Date();         
+	        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");  
+	        currentDate = sdf.format(d);  
+		}
+		return currentDate;
+	}
 
 	@Override
 	public String get(String url) {
@@ -58,29 +80,85 @@ public class SpiderServiceImpl implements ISpiderService{
 	}
 	
 	public void spider(int begin, int end){
-		long startTime = System.currentTimeMillis();
-		String projectLisfFile = "e:\\syfc\\projectList.txt";
+		spiderProjectInfo(begin, end);		
+		spiderHouseInfo();
+		load("houses", "E:\\syfc\\housesList.txt");
+	}
+	
+	public void load(String tableName,String fileName){
+		preProcess(fileName);
+		dropTable(tableName);
+		createTable(tableName);
+		loadData(tableName, fileName);
+	}
+	
+	public void dropTable(String tableName){
+		String dropSQL = "drop table if exists "+ tableName+getCurrentDate();
+		exec(dropSQL);
+	}
+	
+	public void createTable(String tableName){
+		String createSQL = "create table "+tableName+getCurrentDate()+ " like "+tableName;
+		exec(createSQL);
+	}
+	
+	public void loadData(String tableName,String fileName){
+		
+		String loadSQL = "load data local infile '"
+				+ fileName.replace("\\", "\\\\")
+				+ "' into table "
+				+ tableName+getCurrentDate()
+				+ " character set 'utf8' fields terminated by ',' lines terminated by '\n'";
+		exec(loadSQL);
+	}
+	
+	public void preProcess(String fileName){
+		String reader = reader(fileName+getCurrentDate());
+		String[] split = reader.split("\n");
+		Set<String> set = new HashSet<String>();
+		for (String item : split) {
+			set.add(item);
+		}
+		
+		StringBuffer buffer = new StringBuffer();
+		for (String item : set) {
+			if (StringUtils.isEmpty(item)) {
+				continue;
+			}
+			String[] property = item.split(",");
+			if (property == null || property.length<=1) {
+				continue;
+			}
+			buffer.append(item).append("\n");
+		}
+		writer(buffer.toString(), fileName);
+	}
+	
+	
+	
+
+	private void spiderProjectInfo(int begin, int end) {
+		long startTime = System.currentTimeMillis();		
 		String url = "http://www.syfc.com.cn/work/xjlp/new_buildingcx.jsp";
 		StringBuffer resultSet = new StringBuffer();
 		for (int i = begin; i < end; i++) {
-			resultSet.append(getProjectList(url+"?page="+i)).append("\n");
-			
-			writer(resultSet.toString(), projectLisfFile);
+			resultSet.append(getProjectList(url+"?page="+i)).append("\n");			
+			writer(resultSet.toString(), projectLisfFile+getCurrentDate());
 			resultSet = new StringBuffer();
 		}
 		long endTime = System.currentTimeMillis();
 		System.out.println("spider completed time expensed: "+(endTime-startTime));
-		
-		String[] projects = reader(projectLisfFile).split("\\n");
+	}
+
+	private void spiderHouseInfo() {
+		String[] projects = reader(projectLisfFile+getCurrentDate()).split("\\n");
 		Set<String> set = new HashSet<String>();
 		for (String project : projects) {
 			set.add(project);
 		}
 		ExecutorService executor = Executors.newFixedThreadPool(4);
 		StringBuffer result = new StringBuffer();
-		int count = 0;
 		for (String project : set) {
-			count++;
 			String[] infos = project.split(",");
 			if (infos == null || infos.length == 0) {
 				continue;
@@ -91,15 +169,36 @@ public class SpiderServiceImpl implements ISpiderService{
 				String houseInfo = submit.get();
 				result.append(houseInfo);
 			} catch (Exception e) {
-				writer(url1, "e:\\syfc\\houses.error.txt");
+				writer(url1, "e:\\syfc\\houses.error.txt."+getCurrentDate());
 			}
 			
-			if (count%50==0) {
-				writer(result.toString(), "e:\\syfc\\housesList.txt");
+			if (result.length()>100000) {
+				writer(result.toString(), "e:\\syfc\\housesList.txt"+getCurrentDate());
 				result = new StringBuffer();
 			}
 		}
 		
+		writer(result.toString(), "e:\\syfc\\housesList.txt"+getCurrentDate());
+	}
+	
+	public void exec(String sql){
+		Datasource datasource = datasourceMapper.get();
+		StringBuffer url = new StringBuffer();
+		url.append(datasource.getUrl())
+		.append("user=")
+		.append(datasource.getUser())
+		.append("&password=")
+		.append(datasource.getPassword());
+		try {
+			Class.forName(datasource.getDriver());
+			Connection connection = DriverManager.getConnection(url.toString());			
+			PreparedStatement statement = connection.prepareStatement(sql);			
+			statement.execute();
+//			connection.commit();
+			connection.close();
+		} catch (ClassNotFoundException | SQLException e) {			
+			e.printStackTrace();
+		}		
 	}
 	
 	public void writer(String resultSet ,String path){

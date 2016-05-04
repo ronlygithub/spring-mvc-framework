@@ -27,40 +27,16 @@ public class SpiderServiceImplTest extends AbstractContextControllerTests{
 		StringBuffer projectList = spiderService.getProjectList("http://www.syfc.com.cn/work/xjlp/new_buildingcx.jsp?page=1");
 		assertNotNull(projectList);
 	}
-	@Test
-	public void testWriter(){
-		spiderService.writer("this is a test", "e:\\testWriter.txt");
-	}
-	@Test
-	public void testReader(){
-		String reader = spiderService.reader("e:\\testWriter.txt").trim();
-		assertEquals(reader, "this is a test");
-	}
-	
 //	@Test
-	public void testSpider(){
-		spiderService.spider(1, 110);
-	}
+	public void testWriter(){
+		spiderService.exec("create table houses_05_04 like houses");
+//		spiderService.exec("load data infile 'e:\\syfc\\housesList.txt' into table houses_05_04 fields terminated by ',' lines terminated by '\n'");
+//		spiderService.writer("this is a test", "e:\\testWriter.txt");
+	}	
 	
 	@Test
-	public void testConfict(){
-		String reader = spiderService.reader("e:\\syfc\\housesList.txt");
-		String[] split = reader.split("\n");
-		Set<String> set = new HashSet<String>();
-		for (String house : split) {
-			set.add(house);
-		}
-		
-		StringBuffer buffer = new StringBuffer();
-		for (String house : set) {
-			if (StringUtils.isEmpty(house)) {
-				continue;
-			}
-			buffer.append(house).append("\n");
-		}
-		spiderService.writer(buffer.toString(), "e:\\syfc\\houses.txt");
-	}
-	
-	
+	public void testSpider(){
+		spiderService.spider(1, 111);
+	}	
 
 }

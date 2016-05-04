@@ -14,7 +14,7 @@ public class SpiderController {
 	private ISpiderService spiderService;
 	@RequestMapping(value="/{url}",method=RequestMethod.GET)
 	public void get(@PathVariable("url") String url){
-		String content = spiderService.get(url);
+//		String content = spiderService.get(url);
 	}
 
 }

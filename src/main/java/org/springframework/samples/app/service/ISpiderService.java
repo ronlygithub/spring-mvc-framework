@@ -1,6 +1,6 @@
 package org.springframework.samples.app.service;
 
-public interface ISpiderService {
+public interface ISpiderService {	
 
 	public String get(String url);
 	/**
@@ -21,4 +21,6 @@ public interface ISpiderService {
 	public void writer(String resultSet ,String path);
 	
 	public String reader(String path);
+	
+	public void exec(String sql);
 }

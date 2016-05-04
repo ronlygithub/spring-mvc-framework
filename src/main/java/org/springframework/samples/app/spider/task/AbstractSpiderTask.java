@@ -13,7 +13,7 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 
 public abstract class AbstractSpiderTask implements Callable<String>{
 
-	private String url;
+//	private String url;
 	
 	
 	public String get(String url) {
