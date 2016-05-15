@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Random;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
