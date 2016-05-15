@@ -1,11 +1,7 @@
 package org.springframework.samples.app.service.impl;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -33,6 +29,7 @@ import org.springframework.samples.app.dao.DatasourceMapper;
 import org.springframework.samples.app.dao.ProjectMapper;
 import org.springframework.samples.app.service.ISpiderService;
 import org.springframework.samples.app.spider.task.SpiderHousesTask;
+import org.springframework.samples.app.utils.MFileUtils;
 import org.springframework.samples.app.vo.Datasource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -79,13 +76,13 @@ public class SpiderServiceImpl implements ISpiderService{
 		return result.toString();
 	}
 	
-	public void spider(int begin, int end){
+	public void spider(int begin, int end) throws IOException{
 		spiderProjectInfo(begin, end);		
 		spiderHouseInfo();
 		load("houses", "E:\\syfc\\housesList.txt");
 	}
 	
-	public void load(String tableName,String fileName){
+	public void load(String tableName,String fileName) throws IOException{
 		preProcess(fileName);
 		dropTable(tableName);
 		createTable(tableName);
@@ -112,8 +109,8 @@ public class SpiderServiceImpl implements ISpiderService{
 		exec(loadSQL);
 	}
 	
-	public void preProcess(String fileName){
-		String reader = reader(fileName+getCurrentDate());
+	public void preProcess(String fileName) throws IOException{
+		String reader = MFileUtils.reader(fileName+getCurrentDate());
 		String[] split = reader.split("\n");
 		Set<String> set = new HashSet<String>();
 		for (String item : split) {
@@ -131,7 +128,7 @@ public class SpiderServiceImpl implements ISpiderService{
 			}
 			buffer.append(item).append("\n");
 		}
-		writer(buffer.toString(), fileName);
+		MFileUtils.writer(buffer.toString(), fileName);
 	}
 	
 	
@@ -143,15 +140,15 @@ public class SpiderServiceImpl implements ISpiderService{
 		StringBuffer resultSet = new StringBuffer();
 		for (int i = begin; i < end; i++) {
 			resultSet.append(getProjectList(url+"?page="+i)).append("\n");			
-			writer(resultSet.toString(), projectLisfFile+getCurrentDate());
+			MFileUtils.writer(resultSet.toString(), projectLisfFile+getCurrentDate());
 			resultSet = new StringBuffer();
 		}
 		long endTime = System.currentTimeMillis();
 		System.out.println("spider completed time expensed: "+(endTime-startTime));
 	}
 
-	private void spiderHouseInfo() {
-		String[] projects = reader(projectLisfFile+getCurrentDate()).split("\\n");
+	private void spiderHouseInfo() throws IOException {
+		String[] projects = MFileUtils.reader(projectLisfFile+getCurrentDate()).split("\\n");
 		Set<String> set = new HashSet<String>();
 		for (String project : projects) {
 			set.add(project);
@@ -169,16 +166,16 @@ public class SpiderServiceImpl implements ISpiderService{
 				String houseInfo = submit.get();
 				result.append(houseInfo);
 			} catch (Exception e) {
-				writer(url1, "e:\\syfc\\houses.error.txt."+getCurrentDate());
+				MFileUtils.writer(url1, "e:\\syfc\\houses.error.txt."+getCurrentDate());
 			}
 			
 			if (result.length()>100000) {
-				writer(result.toString(), "e:\\syfc\\housesList.txt"+getCurrentDate());
+				MFileUtils.writer(result.toString(), "e:\\syfc\\housesList.txt"+getCurrentDate());
 				result = new StringBuffer();
 			}
 		}
 		
-		writer(result.toString(), "e:\\syfc\\housesList.txt"+getCurrentDate());
+		MFileUtils.writer(result.toString(), "e:\\syfc\\housesList.txt"+getCurrentDate());
 	}
 	
 	public void exec(String sql){
@@ -201,38 +198,6 @@ public class SpiderServiceImpl implements ISpiderService{
 		}		
 	}
 	
-	public void writer(String resultSet ,String path){
-		try {
-			FileOutputStream out = new FileOutputStream(path,true);
-			OutputStreamWriter writer = new OutputStreamWriter(out,"utf-8");
-			
-			writer.write(resultSet.toString());
-			writer.flush();
-			writer.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public String reader(String path){
-		if (StringUtils.isEmpty(path)) {
-			return null;
-		}
-		StringBuffer result = new StringBuffer();
-		char[] buffer = new char[4096];
-		try {
-			FileInputStream in = new FileInputStream(path);
-			InputStreamReader reader = new InputStreamReader(in, "utf-8");
-			while(reader.read(buffer)!=-1){
-				result.append(buffer);
-			}
-			reader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return result.toString();
-		
-	}
 	
 	public StringBuffer getProjectList(String url){
 		System.out.println("processing: "+url);

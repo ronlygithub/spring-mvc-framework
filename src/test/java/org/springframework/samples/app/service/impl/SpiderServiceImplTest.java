@@ -1,9 +1,8 @@
 package org.springframework.samples.app.service.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.io.IOException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.samples.app.service.ISpiderService;
 import org.springframework.samples.mvc.AbstractContextControllerTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.StringUtils;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SpiderServiceImplTest extends AbstractContextControllerTests{
 	
@@ -35,7 +33,7 @@ public class SpiderServiceImplTest extends AbstractContextControllerTests{
 	}	
 	
 	@Test
-	public void testSpider(){
+	public void testSpider() throws IOException{
 		spiderService.spider(1, 111);
 	}	
 

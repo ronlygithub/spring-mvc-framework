@@ -1,5 +1,7 @@
 package org.springframework.samples.app.service;
 
+import java.io.IOException;
+
 public interface ISpiderService {	
 
 	public String get(String url);
@@ -16,11 +18,8 @@ public interface ISpiderService {
 	 */
 	public String getHouserList(String url);
 	
-	public void spider(int begin, int end);
+	public void spider(int begin, int end) throws IOException;
 	
-	public void writer(String resultSet ,String path);
-	
-	public String reader(String path);
 	
 	public void exec(String sql);
 }
